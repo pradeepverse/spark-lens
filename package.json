@@ -1,0 +1,230 @@
+{
+  "name": "spark-lens",
+  "displayName": "Spark Lens",
+  "description": "Understand research papers and patents layer by layer, from \"like you are 5\" to expert, powered by your GitHub Copilot.",
+  "version": "0.1.0",
+  "publisher": "pradeepverse",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pradeepverse/spark-lens.git"
+  },
+  "homepage": "https://github.com/pradeepverse/spark-lens#readme",
+  "bugs": {
+    "url": "https://github.com/pradeepverse/spark-lens/issues"
+  },
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1b1712",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Education",
+    "Other"
+  ],
+  "keywords": [
+    "research paper",
+    "patent",
+    "learning",
+    "copilot",
+    "explain",
+    "eli5",
+    "reading"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sparkLens",
+          "title": "Spark Lens",
+          "icon": "media/spark.svg"
+        }
+      ]
+    },
+    "views": {
+      "sparkLens": [
+        {
+          "type": "webview",
+          "id": "sparkLens.home",
+          "name": "Home"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sparkLens.openHome",
+        "title": "Open Home",
+        "category": "Spark Lens",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "sparkLens.sparkUrl",
+        "title": "Read a URLâ€¦",
+        "category": "Spark Lens",
+        "icon": "$(link)"
+      },
+      {
+        "command": "sparkLens.sparkPatent",
+        "title": "Look Up a Patentâ€¦",
+        "category": "Spark Lens"
+      },
+      {
+        "command": "sparkLens.sparkPdf",
+        "title": "Read a PDFâ€¦",
+        "category": "Spark Lens",
+        "icon": "$(file-pdf)"
+      },
+      {
+        "command": "sparkLens.sparkSelection",
+        "title": "Explain Selection Layer by Layer",
+        "category": "Spark Lens"
+      },
+      {
+        "command": "sparkLens.selectModel",
+        "title": "Choose Copilot Model",
+        "category": "Spark Lens"
+      },
+      {
+        "command": "sparkLens.openDoc",
+        "title": "Open Document",
+        "category": "Spark Lens"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sparkLens.openDoc",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "sparkLens.sparkUrl",
+          "when": "view == sparkLens.home",
+          "group": "navigation@1"
+        },
+        {
+          "command": "sparkLens.sparkPdf",
+          "when": "view == sparkLens.home",
+          "group": "navigation@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sparkLens.sparkSelection",
+          "when": "editorHasSelection",
+          "group": "navigation@90"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sparkLens.sparkPdf",
+          "when": "resourceExtname == .pdf",
+          "group": "navigation@90"
+        }
+      ]
+    },
+    "chatParticipants": [
+      {
+        "id": "sparkLens.spark",
+        "name": "spark",
+        "fullName": "Spark Lens",
+        "description": "Understand papers & patents layer by layer",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "explain",
+            "description": "Start reading a URL, patent number or pasted text"
+          },
+          {
+            "name": "layer",
+            "description": "Read a layer (1-5) of the current document"
+          },
+          {
+            "name": "quiz",
+            "description": "Take the quiz for your current layer"
+          },
+          {
+            "name": "glossary",
+            "description": "Terms you have learned in this document"
+          },
+          {
+            "name": "open",
+            "description": "Open the current document in the Reading Room"
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "Spark Lens",
+      "properties": {
+        "sparkLens.model": {
+          "type": "string",
+          "default": "",
+          "description": "Id of the GitHub Copilot model to use. Leave empty for a smart default. Pick one from the model menu in the Reading Room or with \"Spark Lens: Choose Copilot Model\"."
+        },
+        "sparkLens.preferredModelFamilies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "claude-sonnet",
+            "gpt-5",
+            "claude",
+            "gemini-2.5-pro",
+            "gpt-4.1"
+          ],
+          "description": "When no model is chosen, the first available model whose family contains one of these strings is used."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build:ext": "node esbuild.mjs",
+    "build:web": "vite build --config webview-ui/vite.config.ts",
+    "build": "npm run build:ext && npm run build:web",
+    "watch:ext": "node esbuild.mjs --watch",
+    "watch:web": "vite build --watch --config webview-ui/vite.config.ts",
+    "typecheck": "tsc -p . --noEmit && tsc -p webview-ui --noEmit",
+    "vscode:prepublish": "node esbuild.mjs --production && vite build --config webview-ui/vite.config.ts",
+    "package": "vsce package --no-dependencies",
+    "test": "esbuild test/engine.test.ts --bundle --platform=node --format=cjs --outfile=dist-test/engine.test.js --alias:vscode=./test/vscode-stub.ts --define:import.meta.url=importMetaUrl \"--banner:js=const importMetaUrl = require('url').pathToFileURL(__filename).href;\" --log-level=warning && node dist-test/engine.test.js"
+  },
+  "devDependencies": {
+    "@fontsource-variable/literata": "^5.3.0",
+    "@mozilla/readability": "^0.6.0",
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/vscode": "^1.95.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
+    "fast-xml-parser": "^5.11.2",
+    "katex": "^0.18.9",
+    "linkedom": "^0.18.13",
+    "mermaid": "^12.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "typescript": "^7.0.2",
+    "unist-util-visit": "^5.1.0",
+    "unpdf": "^1.8.1",
+    "vite": "^8.3.1"
+  },
+  "allowScripts": {
+    "@vscode/vsce-sign@2.1.0": true,
+    "esbuild@0.28.2": true
+  }
+}
